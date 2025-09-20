@@ -2,7 +2,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
-INPUT_FILE_NAME = "test_track.csv" # Modify this to be your track!
+INPUT_FILE_NAME = "ellipse_track.csv" # Modify this to be your track!
+
+# def insert function here lmao
 
 def find_midline(left_x, left_y, right_x, right_y, num_midpoints=None):
     """
