@@ -164,8 +164,8 @@ if __name__ == "__main__":
         left_unsorted = np.random.permutation(left)
         right_unsorted = np.random.permutation(right)
         
-        left = polygon_constructor.sort_points_nearest(left_unsorted)
-        right = polygon_constructor.sort_points_nearest(right_unsorted)
+        # left = polygon_constructor.order_boundary_weighted(left_unsorted, (24, 28))
+        right = polygon_constructor.order_boundary_weighted(right_unsorted, (24, 28), max_spacing=20)
     
     # Old midline
     # mid_x, mid_y = find_midline(left_x, left_y, right_x, right_y)
@@ -177,14 +177,14 @@ if __name__ == "__main__":
     # x_fine, y_fine = cubic_spline(mid)
     
     # delaunay_midline, delaunay_triangles = first_delaunay_midline.midline(left, right)
-    delaunay_midline, delaunay_triangles = map(np.array, second_delaunay_midline.midline(left.tolist(), right.tolist())) # Ensure everything is in numpy arrays
+    # delaunay_midline, delaunay_triangles = map(np.array, first_delaunay_midline.midline(left.tolist(), right.tolist())) # Ensure everything is in numpy arrays
     
-    delaunay_midline_x = delaunay_midline[:,0]
-    delaunay_midline_y = delaunay_midline[:,1]
+    # delaunay_midline_x = delaunay_midline[:,0]
+    # delaunay_midline_y = delaunay_midline[:,1]
     
-    delaunay_poly_collection = PolyCollection(delaunay_triangles, facecolors=(1,0,0,0), edgecolors='black', linewidths=1)
+    # delaunay_poly_collection = PolyCollection(delaunay_triangles, facecolors=(1,0,0,0), edgecolors='black', linewidths=1)
     
-    cubic_spline_x_2, cubic_spline_y_2 = cubic_spline(delaunay_midline)
+    # cubic_spline_x_2, cubic_spline_y_2 = cubic_spline(delaunay_midline)
     
     
     # Matplotlib stuff
@@ -194,7 +194,7 @@ if __name__ == "__main__":
     plt.plot(left_x, left_y, color='blue', marker='o')
     plt.plot(right_x, right_y, color='gold', marker='o')
     
-    plt.plot(left[:,0], left[:, 1], color="red")
+    plt.plot(right[:,0], right[:, 1], color="red")
     
     ax = plt.gca()
     ax.set_aspect("equal")
@@ -206,10 +206,10 @@ if __name__ == "__main__":
     # plt.plot(x_fine, y_fine, '-', label="Spline")
     
     # Delaunay midline
-    plt.plot(delaunay_midline_x, delaunay_midline_y, color='forestgreen', marker='x')
-    ax.add_collection(delaunay_poly_collection)
+    # plt.plot(delaunay_midline_x, delaunay_midline_y, color='forestgreen', marker='x')
+    # ax.add_collection(delaunay_poly_collection)
 
-    plt.plot(cubic_spline_x_2, cubic_spline_y_2, '-', label="Spline 2")
+    # plt.plot(cubic_spline_x_2, cubic_spline_y_2, '-', label="Spline 2")
     
     plt.legend()
     
