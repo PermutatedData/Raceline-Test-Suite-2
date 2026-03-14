@@ -16,7 +16,7 @@ import polygon_constructor
 import shapely
 
 # Starts from 1
-TEST_CASE = 5
+TEST_CASE = 3
 
 UNORDERED_INPUTS = True
 
@@ -222,7 +222,7 @@ if __name__ == "__main__":
     plt.arrow(car_pos[0], car_pos[1], 2 * np.cos(heading_angle), 2 * np.sin(heading_angle), color="red", linewidth=2, head_width=1)
     
     plt.plot(left[:,0], left[:, 1], color="red")
-    plt.plot(right[:,0], right[:, 1], color="red")
+    plt.plot(right[:,0], right[:, 1], color="green")
     
     polygon_closed = np.vstack((polygon, np.array(polygon[0])))
     plt.plot(polygon_closed[:,0], polygon_closed[:,1], color="orange", linestyle="--")

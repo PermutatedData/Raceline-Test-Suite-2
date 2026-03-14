@@ -154,23 +154,23 @@ def get_good_polygon(left_cones: np.ndarray, right_cones: np.ndarray) -> np.ndar
     """
     
     last_left_cone = left_cones[-1]
-    dists = np.linalg.norm(right_cones - last_left_cone, axis=1)
-    index_right = np.argmin(dists)
+    dists_from_right = np.linalg.norm(right_cones - last_left_cone, axis=1)
+    index_right = np.argmin(dists_from_right)
     
     last_right_cone = right_cones[-1]
-    dists2 = np.linalg.norm(left_cones - last_right_cone, axis=1)
-    index_left = np.argmin(dists2)
+    dists_from_left = np.linalg.norm(left_cones - last_right_cone, axis=1)
+    index_left = np.argmin(dists_from_left)
         
-    min_on_left = min(dists[index_right], dists2[index_left]) == dists[index_left]
+    min_on_left = min(dists_from_right[index_right], dists_from_left[index_left]) == dists_from_right[index_right]
     min_dist = 0
-    
+
     if min_on_left:
-        min_dist = dists[index_left]
+        min_dist = dists_from_right[index_right]
 
         right_cones = right_cones[:index_right + 1]
         
     else:
-        min_dist = dists2[index_right]
+        min_dist = dists_from_left[index_left]
         
         left_cones = left_cones[:index_left + 1]
         
