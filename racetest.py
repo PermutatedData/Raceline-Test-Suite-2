@@ -13,8 +13,10 @@ import second_delaunay_midline
 
 import polygon_constructor
 
+import shapely
+
 # Starts from 1
-TEST_CASE = 4
+TEST_CASE = 5
 
 UNORDERED_INPUTS = True
 
@@ -188,6 +190,8 @@ if __name__ == "__main__":
         left = polygon_constructor.order_boundary_weighted(left_unsorted, car_pos, car_heading=heading_angle, weight_angle=1, max_spacing=30)
         right = polygon_constructor.order_boundary_weighted(right_unsorted, car_pos, car_heading=heading_angle, weight_angle=1, max_spacing=30)
     
+    polygon = polygon_constructor.polygon_pipeline(left, right, car_pos, car_heading=heading_angle, weight_angle=1, max_spacing=30)
+    
     # Old midline
     # mid_x, mid_y = find_midline(left_x, left_y, right_x, right_y)
     # mid_x, mid_y, triangles = basic_triangulation(left_x, left_y, right_x, right_y)
@@ -220,6 +224,9 @@ if __name__ == "__main__":
     plt.plot(left[:,0], left[:, 1], color="red")
     plt.plot(right[:,0], right[:, 1], color="red")
     
+    polygon_closed = np.vstack((polygon, np.array(polygon[0])))
+    plt.plot(polygon_closed[:,0], polygon_closed[:,1], color="orange", linestyle="--")
+    
     ax = plt.gca()
     ax.set_aspect("equal")
     
@@ -235,8 +242,14 @@ if __name__ == "__main__":
 
     # plt.plot(cubic_spline_x_2, cubic_spline_y_2, '-', label="Spline 2")
     
+    triangles = shapely.constrained_delaunay_triangles(shapely.Polygon(polygon_closed))
+    
+    for tri in triangles.geoms:
+        x, y = tri.exterior.xy
+        plt.plot(x, y, "k-")
+    
     plt.legend()
     
-    delaunay_library(left_x, left_y, right_x, right_y)
+    # delaunay_library(left_x, left_y, right_x, right_y)
     
     plt.show()
