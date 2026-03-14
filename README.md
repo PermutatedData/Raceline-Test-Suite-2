@@ -49,3 +49,5 @@ python racetest.py
 
 ### Cone Sorting
 The algorithm used is a weighted sum of angles distances with 1-step lookahead. Hard cutoffs are used, likely giving slight performance benefits
+
+Turns out to be very sensitive to weights and other parameters (see Images)
