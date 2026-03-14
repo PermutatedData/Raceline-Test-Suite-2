@@ -1,7 +1,8 @@
-# Raceline Test Suite
+# Raceline Test Suite 2
 
-The **Raceline Test Suite** is a lightweight web-based tool for creating and testing racetracks.  
-It provides an interactive **HTML interface** to design tracks, export them as `.csv`, and evaluate custom raceline algorithms in Python.
+Building off of **Raceline Test Suite**, a lightweight web-based tool for creating and testing racetracks
+
+Mainly features various basic Delaunay triangulations plus a cone sorting algorithm
 
 ---
 
@@ -46,7 +47,5 @@ start racetrack_drawer/racetrack_drawer.html      # Windows
 python racetest.py
 ```
 
-### Description
-Racetrack test with Delaunay algorithm as main focus
-
-Assumes perceptions data is completely unordered
+### Cone Sorting
+The algorithm used is a weighted sum of angles distances with 1-step lookahead. Hard cutoffs are used, likely giving slight performance benefits
