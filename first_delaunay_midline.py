@@ -86,17 +86,10 @@ def midline(left_points, right_points,
     # Close loop
     # ordered = np.vstack([ordered, ordered[0]])
 
-    # Optional spline smoothing
-    # if smooth:
-    #     tck, _ = splprep([ordered[:, 0], ordered[:, 1]], 
-    #                      s=spline_s, per=True)
-    #     u_new = np.linspace(0, 1, num_output_points)
-    #     x_new, y_new = splev(u_new, tck)
-    #     ordered = np.vstack((x_new, y_new)).T
-
     return ordered, np.array(triangles)
 
-# Likely uses cKDTree's own sorting algorithm to sort points. Probably super inefficient
+# Repeatedly assembles and uses kdTree to find nearest neighbor
+# More efficient for large scale but not here
 def order_points(points):
     """
     Order points into continuous loop using greedy nearest neighbor.
