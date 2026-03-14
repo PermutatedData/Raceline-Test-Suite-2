@@ -8,6 +8,7 @@ TOLERANCE = 1E-5
 def score_cone(current, heading, cone, max_dist, weight_angle, min_spacing, max_spacing, max_search_angle_dot) -> float: 
     """
     Returns weighted sum between two positions factoring change in heading and spacing
+    Maximum possible value is 1 + weight_angle
     Has cutoffs
 
     Args:
@@ -45,6 +46,8 @@ def score_cone(current, heading, cone, max_dist, weight_angle, min_spacing, max_
 
 # In reality, car pos should be 0
 # In particularly bad cases, ordering will fail rather than try a bs solution
+# TODO: set initial value of future_score. Must be high but not to the point of overflow
+
 def order_boundary_weighted(cones: np.ndarray, car_pos, car_heading=0, weight_angle=0.66, weight_future_look=0.5, min_spacing=0.5, max_spacing=6, max_search_angle=70) -> np.ndarray:
     """
     Returns weighted sum between two positions factoring change in heading and spacing
@@ -101,7 +104,11 @@ def order_boundary_weighted(cones: np.ndarray, car_pos, car_heading=0, weight_an
                 continue
 
             score = score_cone(cones[current], direction_normalized, cones[idx], max_dist, weight_angle=weight_angle, min_spacing=min_spacing, max_spacing=max_spacing, max_search_angle_dot=cos_limit)
-            future_score = np.inf
+            
+            print(score)
+            
+            # Should ensure this is greater than what's feasible
+            future_score = 1 + weight_angle + 1
 
             if score == np.inf:
                 continue
