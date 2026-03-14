@@ -13,10 +13,10 @@ TOLERANCE = 1E-5
 WEIGHT_ANGLE = 0.66
 WEIGHT_FUTURE_LOOK = 0.5
 MIN_SPACING = 0.5
-MAX_SPACING = 30
+MAX_SPACING = 20
 MAX_SEARCH_ANGLE = 70
 
-def score_cone(current, heading, cone, max_dist, max_search_angle_dot) -> float: 
+def score_cone(current, heading, cone, max_search_angle_dot) -> float: 
     """
     Returns weighted sum between two positions factoring change in heading and spacing
     Maximum possible value is 1 + WEIGHT_ANGLE
@@ -40,7 +40,6 @@ def score_cone(current, heading, cone, max_dist, max_search_angle_dot) -> float:
     dist = np.linalg.norm(dist_vec)
     
     if dist < MIN_SPACING or dist > MAX_SPACING:
-        print("shit1")
         return np.inf
     
     dot = np.dot(heading, dist_vec / dist)
@@ -50,7 +49,9 @@ def score_cone(current, heading, cone, max_dist, max_search_angle_dot) -> float:
     if dot <= max_search_angle_dot:
         return np.inf
     
-    return dist / max_dist + WEIGHT_ANGLE * (1 - dot)
+    # print(dist / MAX_SPACING + WEIGHT_ANGLE * (1 - dot), 1 - dot)
+    
+    return dist / MAX_SPACING + WEIGHT_ANGLE * (1 - dot)
 
 
 # Typical values
@@ -106,19 +107,13 @@ def order_boundary_weighted(cones: np.ndarray, car_pos, car_heading_vector) -> n
         best_idx = -1
         best_score = np.inf
 
-        max_dist = 0
-        for idx in range(n):
-            if idx not in visited:
-                d = np.linalg.norm(cones[idx] - cones[current])
-                max_dist = max(max_dist, d)
-
         for idx in range(n):
             if idx in visited:
                 continue
 
-            score = score_cone(cones[current], direction_normalized, cones[idx], max_dist, cos_limit)
+            # print("Current score: ", cones[idx])
             
-            # print(score)
+            score = score_cone(cones[current], direction_normalized, cones[idx], cos_limit)
             
             if score == np.inf:
                 continue
@@ -131,13 +126,19 @@ def order_boundary_weighted(cones: np.ndarray, car_pos, car_heading_vector) -> n
                 if idx2 in visited or idx2 == idx:
                     continue
                 
-                score2 = score_cone(cones[idx], direction_normalized, cones[idx2], max_dist, cos_limit)
+                # print("Future score: ", cones[idx2])
+                
+                direction_future = cones[idx2] - cones[idx]
+                score2 = score_cone(cones[idx], direction_future / np.linalg.norm(direction_future), cones[idx2], cos_limit)
                 
                 if score2 < future_score:
                     future_score = score2
             
             combined_score = score + WEIGHT_FUTURE_LOOK * future_score
-              
+            
+            # print(cones[idx], score, future_score, combined_score)
+            # print()
+            
             if combined_score < best_score:
                     best_score = combined_score
                     best_idx = idx
@@ -196,7 +197,7 @@ def get_good_polygon(left_cones: np.ndarray, right_cones: np.ndarray) -> np.ndar
 def polygon_pipeline(left_cones: np.ndarray, right_cones: np.ndarray, car_pos, car_heading_vector) -> np.ndarray:
     left_cones_ordered = order_boundary_weighted(left_cones, car_pos, car_heading_vector)
     
-    # print("\n")
+    print("\n")
     
     right_cones_ordered = order_boundary_weighted(right_cones, car_pos, car_heading_vector)
     
