@@ -16,7 +16,7 @@ import polygon_constructor
 import shapely
 
 # Starts from 1
-TEST_CASE = 3
+TEST_CASE = 2
 
 UNORDERED_INPUTS = True
 
@@ -244,11 +244,11 @@ if __name__ == "__main__":
 
     # plt.plot(cubic_spline_x_2, cubic_spline_y_2, '-', label="Spline 2")
     
-    triangles = shapely.constrained_delaunay_triangles(shapely.Polygon(polygon_closed))
+    # triangles = shapely.constrained_delaunay_triangles(shapely.Polygon(polygon_closed))
     
-    for tri in triangles.geoms:
-        x, y = tri.exterior.xy
-        plt.plot(x, y, "k-")
+    # for tri in triangles.geoms:
+    #     x, y = tri.exterior.xy
+    #     plt.plot(x, y, "k-")
     
     plt.legend()
     
