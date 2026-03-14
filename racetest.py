@@ -164,8 +164,8 @@ if __name__ == "__main__":
         left_unsorted = np.random.permutation(left)
         right_unsorted = np.random.permutation(right)
         
-        # left = polygon_constructor.order_boundary_weighted(left_unsorted, (24, 28))
-        right = polygon_constructor.order_boundary_weighted(right_unsorted, (24, 28), max_spacing=20)
+        left = polygon_constructor.order_boundary_weighted(left_unsorted, (24, 28), weight_angle=1, max_spacing=20)
+        right = polygon_constructor.order_boundary_weighted(right_unsorted, (24, 28), weight_angle=1, max_spacing=20)
     
     # Old midline
     # mid_x, mid_y = find_midline(left_x, left_y, right_x, right_y)
@@ -194,6 +194,7 @@ if __name__ == "__main__":
     plt.plot(left_x, left_y, color='blue', marker='o')
     plt.plot(right_x, right_y, color='gold', marker='o')
     
+    plt.plot(left[:,0], left[:, 1], color="red")
     plt.plot(right[:,0], right[:, 1], color="red")
     
     ax = plt.gca()

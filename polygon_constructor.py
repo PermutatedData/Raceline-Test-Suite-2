@@ -5,21 +5,22 @@ TOLERANCE = 1E-5
 
 # TODO: projection sorting, something more advanced if necessary. Centroid angle sorting likely not good enough for FSAE?
 
-def score_cone(current, heading, cone, max_dist, weight_dist, weight_angle, min_spacing, max_spacing, max_search_angle_dot):
-    """_summary_
+def score_cone(current, heading, cone, max_dist, weight_angle, min_spacing, max_spacing, max_search_angle_dot) -> float: 
+    """
+    Returns weighted sum between two positions factoring change in heading and spacing
+    Has cutoffs
 
     Args:
-        current (_type_): _description_
-        heading (_type_): _description_
-        cone (_type_): _description_
-        weight_dist (_type_): _description_
-        weight_angle (_type_): _description_
-        min_spacing (_type_): _description_
-        max_spacing (_type_): _description_
-        max_search_angle (_type_): _description_
+        current (_type_): current position
+        heading (_type_): heading vector (must be normalized)
+        cone (_type_): next position (cone)
+        weight_angle: weight applied to angle compared to distance (1)
+        min_spacing (_type_): min spacing between cones
+        max_spacing (_type_): max spacing between cones
+        max_search_angle (_type_): max change in heading
 
     Returns:
-        _type_: _description_
+        float: score
     """
     
     if not np.isclose(np.linalg.norm(heading), 1.0, atol=TOLERANCE):
@@ -36,21 +37,31 @@ def score_cone(current, heading, cone, max_dist, weight_dist, weight_angle, min_
     if dot <= max_search_angle_dot:
         return np.inf
     
-    return weight_dist * (dist / max_dist) + weight_angle * (1 - dot)
+    return dist / max_dist + weight_angle * (1 - dot)
+
+# Typical values
+# weight_angle / weight_dist = 0.67-ish
+# weight_future_look = 0.4–0.7
 
 # In reality, car pos should be 0
 # In particularly bad cases, ordering will fail rather than try a bs solution
-def order_boundary_weighted(cones: np.ndarray, car_pos, car_heading=0, weight_dist=0.6, weight_angle=0.4, min_spacing=0.5, max_spacing=6, max_search_angle=70) -> np.ndarray:
+def order_boundary_weighted(cones: np.ndarray, car_pos, car_heading=0, weight_angle=0.66, weight_future_look=0.5, min_spacing=0.5, max_spacing=6, max_search_angle=70) -> np.ndarray:
     """
-    Nearest neighbor walk
+    Returns weighted sum between two positions factoring change in heading and spacing
+    Has cutoffs
 
-    Parameters
-    ----------
-    points : (x, y) Numpy array
+    Args:
+        cones (_type_): current position
+        car_pos (_type_): heading vector (must be normalized)
+        car_heading (_type_): next position (cone)
+        weight_angle (_type_): weight applied to angle compared to distance (1)
+        weight_future_look (_type_): weight applied to future prediction compared to current
+        min_spacing (_type_): min spacing between cones
+        max_spacing (_type_): max spacing between cones
+        max_search_angle (_type_): max change in heading
 
-    Returns
-    -------
-    sorted points : (x, y) Numpy array
+    Returns:
+        float: score
     """
 
     n = len(cones)
@@ -70,34 +81,15 @@ def order_boundary_weighted(cones: np.ndarray, car_pos, car_heading=0, weight_di
     ordered.append(cones[current])
     visited.add(current)
 
-    prev = None
+    direction = np.array((np.cos(np.deg2rad(car_heading)), np.sin(np.deg2rad(car_heading))))
+    direction_normalized = direction / np.linalg.norm(direction)
 
     while len(visited) < n:
-        # Fix
-        if prev is None:
-            direction = np.array((np.cos(np.deg2rad(car_heading)), np.sin(np.deg2rad(car_heading))))
-            
-        else:
-            # v1 = cones[prev] - cones[prev2]
-            # v2 = cones[current] - cones[prev]
-
-            # v1 = v1 / np.linalg.norm(v1)
-            # v2 = v2 / np.linalg.norm(v2)
-
-            # direction = 0.4 * v1 + 0.6 * v2
-            
-            direction = cones[current] - cones[prev]
-        
         print(cones[current], len(visited))
-        
-        norm = np.linalg.norm(direction)
-
-        direction_normalized = direction / norm
 
         best_idx = -1
         best_score = np.inf
 
-        # compute max candidate distance for normalization
         max_dist = 0
         for idx in range(n):
             if idx not in visited:
@@ -108,11 +100,27 @@ def order_boundary_weighted(cones: np.ndarray, car_pos, car_heading=0, weight_di
             if idx in visited:
                 continue
 
-            score = score_cone(cones[current], direction_normalized, cones[idx], max_dist, weight_dist=weight_dist, weight_angle=weight_angle, min_spacing=min_spacing, max_spacing=max_spacing, max_search_angle_dot=cos_limit)
+            score = score_cone(cones[current], direction_normalized, cones[idx], max_dist, weight_angle=weight_angle, min_spacing=min_spacing, max_spacing=max_spacing, max_search_angle_dot=cos_limit)
+            future_score = np.inf
 
-            if score < best_score:
-                best_score = score
-                best_idx = idx
+            if score == np.inf:
+                continue
+            
+            # Lookahead step
+            for idx2 in range(n):
+                if idx2 in visited or idx2 == idx:
+                    continue
+                
+                score2 = score_cone(cones[idx], direction_normalized, cones[idx2], max_dist, weight_angle=weight_angle, min_spacing=min_spacing, max_spacing=max_spacing, max_search_angle_dot=cos_limit)
+                
+                if score2 < future_score:
+                    future_score = score2
+            
+            combined_score = score + weight_future_look * future_score
+              
+            if combined_score < best_score:
+                    best_score = combined_score
+                    best_idx = idx
 
         if best_idx == -1:
             print('break 2')
@@ -121,7 +129,9 @@ def order_boundary_weighted(cones: np.ndarray, car_pos, car_heading=0, weight_di
         ordered.append(cones[best_idx])
         visited.add(best_idx)
 
-        prev = current
+        direction = cones[best_idx] - cones[current]
+        direction_normalized = direction / np.linalg.norm(direction)
+        
         current = best_idx
 
     return np.array(ordered)
