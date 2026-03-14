@@ -1,18 +1,18 @@
 [
     {
         "name": "ellipse_track",
-        "position": [0, 0],
-        "heading": 0
+        "position": [8, 16],
+        "heading": 135
     },  
     {
         "name": "hairpin_1",
-        "position": [0, 0],
-        "heading": 0
+        "position": [33, 33],
+        "heading": 70
     },
     {
         "name": "hairpin_2",
-        "position": [0, 0],
-        "heading": 0
+        "position": [67, 7],
+        "heading": 90
     },
     {
         "name": "hairpin_uneven_track_width_color_swapped",
@@ -26,17 +26,17 @@
     },
     {
         "name": "scuffed_straight_1",
-        "position": [0, 0],
-        "heading": 0
+        "position": [45, 14],
+        "heading": 130
     },
     {
         "name": "test_track",
-        "position": [0, 0],
-        "heading": 0
+        "position": [20, 16],
+        "heading": 100
     },
     {
         "name": "yeet",
-        "position": [0, 0],
-        "heading": 0
+        "position": [42, 15],
+        "heading": 90
     }
 ]
