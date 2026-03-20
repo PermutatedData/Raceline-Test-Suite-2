@@ -7,8 +7,9 @@ import triangle
 import json
 
 from scipy.interpolate import CubicSpline
+from scipy.spatial import Delaunay
 
-import first_delaunay_midline
+import delaunay_postprocessing
 import second_delaunay_midline
 
 import polygon_constructor
@@ -16,9 +17,7 @@ import polygon_constructor
 import shapely
 
 # Starts from 1
-TEST_CASE = 2
-
-UNORDERED_INPUTS = True
+TEST_CASE = 5
 
 def get_data_for_test_case():
     data = {}
@@ -185,12 +184,11 @@ if __name__ == "__main__":
     left = np.column_stack((left_x, left_y)) # (left_x, left_y) is not a tuple but an NDarray infuriatingly
     right = np.column_stack((right_x, right_y))
     
-    if UNORDERED_INPUTS:
-        left_unsorted = np.random.permutation(left)
-        right_unsorted = np.random.permutation(right)
-        
-        left = polygon_constructor.order_boundary_weighted(left_unsorted, car_pos, heading_vector)
-        right = polygon_constructor.order_boundary_weighted(right_unsorted, car_pos, heading_vector)
+    left_unsorted = np.random.permutation(left)
+    right_unsorted = np.random.permutation(right)
+    
+    left_preprocessed = polygon_constructor.order_boundary_weighted(left_unsorted, car_pos, heading_vector)
+    right_preprocessed = polygon_constructor.order_boundary_weighted(right_unsorted, car_pos, heading_vector)
     
     polygon = polygon_constructor.polygon_pipeline(left_unsorted, right_unsorted, car_pos, heading_vector)
     
@@ -203,8 +201,10 @@ if __name__ == "__main__":
     
     # x_fine, y_fine = cubic_spline(mid)
     
-    # delaunay_midline, delaunay_triangles = first_delaunay_midline.midline(left, right)
-    # delaunay_midline, delaunay_triangles = map(np.array, first_delaunay_midline.midline(left.tolist(), right.tolist())) # Ensure everything is in numpy arrays
+    delaunay_postprocessing.create_delaunay(left, right)
+    
+    # delaunay_midline, delaunay_triangles = delaunay_postprocessing.midline(left, right)
+    # delaunay_midline, delaunay_triangles = map(np.array, delaunay_postprocessing.midline(left.tolist(), right.tolist())) # Ensure everything is in numpy arrays
     
     # delaunay_midline_x = delaunay_midline[:,0]
     # delaunay_midline_y = delaunay_midline[:,1]
@@ -223,11 +223,12 @@ if __name__ == "__main__":
     
     plt.arrow(car_pos[0], car_pos[1], 2 * heading_vector[0], 2 * heading_vector[1], color="red", linewidth=2, head_width=1)
     
-    plt.plot(left[:,0], left[:, 1], color="red")
-    plt.plot(right[:,0], right[:, 1], color="green")
+    # Polygon pre-processing
+    # plt.plot(left_preprocessed[:,0], left_preprocessed[:, 1], color="red")
+    # plt.plot(right_preprocessed[:,0], right_preprocessed[:, 1], color="green")
     
-    polygon_closed = np.vstack((polygon, np.array(polygon[0])))
-    plt.plot(polygon_closed[:,0], polygon_closed[:,1], color="orange", linestyle="--")
+    # polygon_closed = np.vstack((polygon, np.array(polygon[0])))
+    # plt.plot(polygon_closed[:,0], polygon_closed[:,1], color="orange", linestyle="--")
     
     ax = plt.gca()
     ax.set_aspect("equal")
@@ -237,6 +238,12 @@ if __name__ == "__main__":
     # ax.add_collection(poly_collection)
     
     # plt.plot(x_fine, y_fine, '-', label="Spline")
+    
+    # Delaunay unprocessed
+    # points = delaunay_postprocessing.get_points()
+    
+    points = delaunay_postprocessing.get_points()
+    plt.triplot(points[:,0], points[:,1], delaunay_postprocessing.simplices())
     
     # Delaunay midline
     # plt.plot(delaunay_midline_x, delaunay_midline_y, color='forestgreen', marker='x')
