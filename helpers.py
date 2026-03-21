@@ -121,10 +121,11 @@ def is_triangle_CCW(t: Triangle):
     Args:
         t (Triangle)
     """
-    if not is_triangle_CCW(t):
+    ret = orient(t.v[0], t.v[1], t.v[2]) > 0
+    if not ret:
         raise ValueError("Triangle is not CCW")
         
-    return orient(t.v[0], t.v[1], t.v[2]) > 0
+    return ret
 
 
 def in_circumcircle(t: Triangle, point):
