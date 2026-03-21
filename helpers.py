@@ -1,4 +1,5 @@
 MIN_VALID_AREA = 1e-9
+TOLERANCE = 1e-5
 
 # Handling of list vs tuple issues is inconsistent at best
 
@@ -89,6 +90,7 @@ def orient(a, b, c):
 def segments_intersect(p1, p2, p3, p4):
     """
     Another bit of comp geometry magic
+    Assumes both segments have non-zero length
     
     Args:
         p1 (list): segment 1 endpoint
@@ -97,6 +99,7 @@ def segments_intersect(p1, p2, p3, p4):
         p4 (list): segment 2 endpoint
     """
     
+    # Sharing endpoints is completely fine. Using == for this might be a bit sus
     if p1 == p3 or p1 == p4 or p2 == p3 or p2 == p4:
         return False
     
@@ -105,7 +108,28 @@ def segments_intersect(p1, p2, p3, p4):
     o3 = orient(p3,p4,p1)
     o4 = orient(p3,p4,p2)
     
+    # likely blows up if points are not CCW
     return o1 * o2 < 0 and o3 * o4 < 0
+
+
+def points_approx_equal(p1, p2):
+    return (p1[0] - p2[0]) ** 2 + (p1[1] - p2[1]) ** 2 <= TOLERANCE ** 2
+
+def in_xy_bounds(bound1, bound2, c):
+    return (min(bound1[0], bound2[0]) <= c[0] <= max(bound1[0], bound2[0]) and
+            min(bound1[1], bound2[1]) <= c[1] <= max(bound1[1], bound2[1]))
+
+def segments_intersect2(p1, p2, p3, p4):
+    p1_shared =  points_approx_equal(p1, p3) or points_approx_equal(p1, p4)
+    p2_shared = points_approx_equal(p2, p3) or points_approx_equal(p2, p4)
+    
+    if not p1_shared == p2_shared:
+        return False
+    
+    o1 = orient(p1,p2,p3)
+    o2 = orient(p1,p2,p4)
+    o3 = orient(p3,p4,p1)
+    o4 = orient(p3,p4,p2)
 
 
 def is_degenerate(t: Triangle):

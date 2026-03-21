@@ -3,21 +3,17 @@ from matplotlib.collections import PolyCollection
 
 import numpy as np
 import pandas as pd
-import triangle
 import json
 
 from scipy.interpolate import CubicSpline
-from scipy.spatial import Delaunay
 
 import delaunay_postprocessing
 import second_delaunay_midline
 
 import polygon_constructor
 
-import shapely
-
 # Starts from 1
-TEST_CASE = 5
+TEST_CASE = 7
 
 def get_data_for_test_case():
     data = {}
@@ -72,11 +68,14 @@ def find_midline(left_x, left_y, right_x, right_y, num_midpoints=None):
 
     return mid_x, mid_y
 
-# 2-large sliding window across left cones that finds the nearest right cone to the first left cone and turns that into a triangle
-# Assumes order
-# Some right cones are never connected
-# Trash, not super efficient, but who cares lol
+
 def basic_triangulation(left_x, left_y, right_x, right_y,):
+    """
+    2-large sliding window across left cones that finds the nearest right cone to the first left cone and turns that into a triangle
+    Assumes order
+    Some right cones are never connected
+    Trash, not super efficient
+    """
     test_x = []
     test_y = []
     
@@ -107,24 +106,6 @@ def basic_triangulation(left_x, left_y, right_x, right_y,):
         test_y.append(midpoint_2_y)
             
     return np.array(test_x), np.array(test_y), np.array(triangles)
-
-def delaunay_library(left_x, left_y, right_x, right_y):
-    left = np.stack((left_x, left_y), axis=1)
-    right = np.stack((right_x, right_y), axis=1)
-    
-    temp = np.arange(len(left) - 1)
-    temp2 = np.arange(len(left), len(left) + len(right) - 1)
-    
-    segments1 = np.concatenate((np.column_stack((temp, temp + 1)), [[len(left) - 1, 0]]))
-    segments2 = np.concatenate((np.column_stack((temp2, temp2 + 1)), [[len(left) + len(right) - 1, len(left)]]))
-    
-    data = {"vertices": np.concatenate((left, right)), 
-            "segments": np.concatenate((segments1, segments2))
-        }
-    
-    triangulation = triangle.triangulate(data, "p")
-    
-    triangle.compare(plt, data, triangulation)
 
 
 def cubic_spline(points):
@@ -203,15 +184,14 @@ if __name__ == "__main__":
     
     delaunay_postprocessing.create_delaunay(left, right)
     
-    # delaunay_midline, delaunay_triangles = delaunay_postprocessing.midline(left, right)
-    # delaunay_midline, delaunay_triangles = map(np.array, delaunay_postprocessing.midline(left.tolist(), right.tolist())) # Ensure everything is in numpy arrays
+    # May be a mix of list and numpy arrays. Who cares
+    processed_simplices = delaunay_postprocessing.prostprocess()
+    processed_midline = delaunay_postprocessing.ordered_midpoint(car_pos)
     
-    # delaunay_midline_x = delaunay_midline[:,0]
-    # delaunay_midline_y = delaunay_midline[:,1]
+    processed_midline_x = processed_midline[:,0]
+    processed_midline_y = processed_midline[:,1]
     
-    # delaunay_poly_collection = PolyCollection(delaunay_triangles, facecolors=(1,0,0,0), edgecolors='black', linewidths=1)
-    
-    # cubic_spline_x_2, cubic_spline_y_2 = cubic_spline(delaunay_midline)
+    # cubic_spline_x_2, cubic_spline_y_2 = cubic_spline(processed_midline)
     
     
     # Matplotlib stuff
@@ -223,6 +203,9 @@ if __name__ == "__main__":
     
     plt.arrow(car_pos[0], car_pos[1], 2 * heading_vector[0], 2 * heading_vector[1], color="red", linewidth=2, head_width=1)
     
+    ax = plt.gca()
+    ax.set_aspect("equal")
+    
     # Polygon pre-processing
     # plt.plot(left_preprocessed[:,0], left_preprocessed[:, 1], color="red")
     # plt.plot(right_preprocessed[:,0], right_preprocessed[:, 1], color="green")
@@ -230,35 +213,18 @@ if __name__ == "__main__":
     # polygon_closed = np.vstack((polygon, np.array(polygon[0])))
     # plt.plot(polygon_closed[:,0], polygon_closed[:,1], color="orange", linestyle="--")
     
-    ax = plt.gca()
-    ax.set_aspect("equal")
-    
-    # Naive midline
-    # plt.plot(mid_x, mid_y, color='green', marker='x')
-    # ax.add_collection(poly_collection)
-    
-    # plt.plot(x_fine, y_fine, '-', label="Spline")
-    
-    # Delaunay unprocessed
-    # points = delaunay_postprocessing.get_points()
     
     points = delaunay_postprocessing.get_points()
+    
+    # Delaunay unprocessed
     plt.triplot(points[:,0], points[:,1], delaunay_postprocessing.simplices())
     
-    # Delaunay midline
-    # plt.plot(delaunay_midline_x, delaunay_midline_y, color='forestgreen', marker='x')
-    # ax.add_collection(delaunay_poly_collection)
+    # Delaunay processed
+    plt.plot(processed_midline_x, processed_midline_y, color='forestgreen', marker='x')
+    plt.triplot(points[:,0], points[:,1], processed_simplices)
 
     # plt.plot(cubic_spline_x_2, cubic_spline_y_2, '-', label="Spline 2")
     
-    # triangles = shapely.constrained_delaunay_triangles(shapely.Polygon(polygon_closed))
-    
-    # for tri in triangles.geoms:
-    #     x, y = tri.exterior.xy
-    #     plt.plot(x, y, "k-")
-    
     plt.legend()
-    
-    # delaunay_library(left_x, left_y, right_x, right_y)
     
     plt.show()
