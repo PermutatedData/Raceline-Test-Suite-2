@@ -191,8 +191,8 @@ if __name__ == "__main__":
     plt.figure(figsize=(10,6))
     plt.grid(True)
     
-    # plt.plot(left_x, left_y, color='blue', marker='o')
-    # plt.plot(right_x, right_y, color='gold', marker='o')
+    plt.plot(left_x, left_y, color='blue', marker='o')
+    plt.plot(right_x, right_y, color='gold', marker='o')
     
     plt.arrow(car_pos[0], car_pos[1], 2 * heading_vector[0], 2 * heading_vector[1], color="red", linewidth=2, head_width=1)
     
@@ -210,7 +210,7 @@ if __name__ == "__main__":
     points = delaunay_postprocessing.get_points()
     
     # Delaunay unprocessed
-    plt.triplot(points[:,0], points[:,1], delaunay_postprocessing.simplices())
+    # plt.triplot(points[:,0], points[:,1], delaunay_postprocessing.simplices())
     
     # Delaunay processed (with greedy filter)
     plt.plot(processed_midline_x, processed_midline_y, color='forestgreen', marker='x')

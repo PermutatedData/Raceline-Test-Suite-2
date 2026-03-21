@@ -11,6 +11,7 @@ tri = None
 labels = None
 points = None
 
+# TODO: figure out what constraints a Delaunay triangulation imposes
 def create_delaunay(left_points, right_points):
     global tri, labels, points
     
