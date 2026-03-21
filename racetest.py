@@ -13,7 +13,7 @@ import second_delaunay_midline
 import polygon_constructor
 
 # Starts from 1
-TEST_CASE = 7
+TEST_CASE = 5
 
 def get_data_for_test_case():
     data = {}
@@ -173,20 +173,13 @@ if __name__ == "__main__":
     
     polygon = polygon_constructor.polygon_pipeline(left_unsorted, right_unsorted, car_pos, heading_vector)
     
-    # Old midline
-    # mid_x, mid_y = find_midline(left_x, left_y, right_x, right_y)
-    # mid_x, mid_y, triangles = basic_triangulation(left_x, left_y, right_x, right_y)
-    # mid = np.column_stack((mid_x, mid_y))
-    
-    # poly_collection = PolyCollection(triangles, facecolors=(1,0,0,0), edgecolors='black', linewidths=1)
-    
-    # x_fine, y_fine = cubic_spline(mid)
-    
     delaunay_postprocessing.create_delaunay(left, right)
     
     # May be a mix of list and numpy arrays. Who cares
     processed_simplices = delaunay_postprocessing.prostprocess()
-    processed_midline = delaunay_postprocessing.ordered_midpoint(car_pos)
+    
+    greedy_results = delaunay_postprocessing.greedy_intersection_removal(processed_simplices)
+    processed_midline = delaunay_postprocessing.ordered_midpoint_from_edge_indices(car_pos, greedy_results)
     
     processed_midline_x = processed_midline[:,0]
     processed_midline_y = processed_midline[:,1]
@@ -198,8 +191,8 @@ if __name__ == "__main__":
     plt.figure(figsize=(10,6))
     plt.grid(True)
     
-    plt.plot(left_x, left_y, color='blue', marker='o')
-    plt.plot(right_x, right_y, color='gold', marker='o')
+    # plt.plot(left_x, left_y, color='blue', marker='o')
+    # plt.plot(right_x, right_y, color='gold', marker='o')
     
     plt.arrow(car_pos[0], car_pos[1], 2 * heading_vector[0], 2 * heading_vector[1], color="red", linewidth=2, head_width=1)
     
@@ -219,9 +212,9 @@ if __name__ == "__main__":
     # Delaunay unprocessed
     plt.triplot(points[:,0], points[:,1], delaunay_postprocessing.simplices())
     
-    # Delaunay processed
+    # Delaunay processed (with greedy filter)
     plt.plot(processed_midline_x, processed_midline_y, color='forestgreen', marker='x')
-    plt.triplot(points[:,0], points[:,1], processed_simplices)
+    plt.triplot(points[:,0], points[:,1], processed_simplices, color="red", linestyle="--")
 
     # plt.plot(cubic_spline_x_2, cubic_spline_y_2, '-', label="Spline 2")
     
