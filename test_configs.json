@@ -1,41 +1,41 @@
 [
     {
-        "name": "ellipse_track",
+        "file": "ellipse_track",
         "position": [8, 16],
         "heading": 135
     },  
     {
-        "name": "hairpin_1",
+        "file": "hairpin_1",
         "position": [33, 33],
         "heading": 70
     },
     {
-        "name": "hairpin_2",
+        "file": "hairpin_2",
         "position": [67, 7],
         "heading": 90
     },
     {
-        "name": "hairpin_uneven_track_width_color_swapped",
+        "file": "hairpin_uneven_track_width_color_swapped",
         "position": [26.69, 17.25],
         "heading": 0
     },
     {
-        "name": "hairpin_uneven_track_width",
+        "file": "hairpin_uneven_track_width",
         "position": [24, 28],
         "heading": 0
     },
     {
-        "name": "scuffed_straight_1",
+        "file": "scuffed_straight_1",
         "position": [45, 14],
         "heading": 130
     },
     {
-        "name": "test_track",
+        "file": "test_track",
         "position": [20, 16],
         "heading": 100
     },
     {
-        "name": "yeet",
+        "file": "yeet",
         "position": [42, 15],
         "heading": 90
     }

@@ -146,7 +146,7 @@ def cubic_spline(points):
 
 if __name__ == "__main__":
     test_case_data = get_data_for_test_case()
-    file_name = test_case_data["name"]
+    file_name = test_case_data["file"]
     car_pos = test_case_data["position"]
     
     heading_angle = np.deg2rad(test_case_data["heading"])
