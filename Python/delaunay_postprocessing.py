@@ -2,7 +2,7 @@ import numpy as np
 
 from scipy.spatial import Delaunay
 
-import helpers
+import helpers as helpers
 
 MIN_SPACING = 1
 MAX_SPACING = 25

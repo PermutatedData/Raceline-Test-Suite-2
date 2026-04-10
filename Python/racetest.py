@@ -19,6 +19,7 @@ def get_data_for_test_case():
     data = {}
     
     try:
+        # A bit sus. Change file path if necessary
         with open('test_configs.json', 'r') as file:
             data = json.load(file)
         
