@@ -1,41 +1,41 @@
 [
     {
-        "file": "ellipse_track",
+        "file": "ellipse_track.csv",
         "position": [8, 16],
         "heading": 135
     },  
     {
-        "file": "hairpin_1",
+        "file": "hairpin_1.csv",
         "position": [33, 33],
         "heading": 70
     },
     {
-        "file": "hairpin_2",
+        "file": "hairpin_2.csv",
         "position": [67, 7],
         "heading": 90
     },
     {
-        "file": "hairpin_uneven_track_width_color_swapped",
+        "file": "hairpin_uneven_track_width_color_swapped.csv",
         "position": [26.69, 17.25],
         "heading": 0
     },
     {
-        "file": "hairpin_uneven_track_width",
+        "file": "hairpin_uneven_track_width.csv",
         "position": [24, 28],
         "heading": 0
     },
     {
-        "file": "scuffed_straight_1",
+        "file": "scuffed_straight_1.csv",
         "position": [45, 14],
         "heading": 130
     },
     {
-        "file": "test_track",
+        "file": "test_track.csv",
         "position": [20, 16],
         "heading": 100
     },
     {
-        "file": "yeet",
+        "file": "yeet.csv",
         "position": [42, 15],
         "heading": 90
     }

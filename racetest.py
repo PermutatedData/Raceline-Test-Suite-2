@@ -152,7 +152,7 @@ if __name__ == "__main__":
     heading_angle = np.deg2rad(test_case_data["heading"])
     heading_vector = np.array([np.cos(heading_angle), np.sin(heading_angle)])
     
-    df = pd.read_csv('./tracks/' + file_name + '.csv')
+    df = pd.read_csv('./tracks/' + file_name)
 
     left_df = df[df['type'] == 'left']
     right_df = df[df['type'] == 'right']
