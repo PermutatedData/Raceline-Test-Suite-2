@@ -9,6 +9,9 @@
 
 #include "json.hpp"
 #include "delaunator.hpp"
+// Note that matplotlibcpp doesn't appear to be maintained any longer and thus has with modern Python and C++
+// Some lines of the h file have thus been commented out
+#include "matplotlibcpp.h"
 
 // I'm sure there's a constant somewhere here
 #ifndef M_PI
@@ -18,7 +21,7 @@
 #define MIN_SPACING 1
 #define MAX_SPACING 25
 
-#define TEST_CASE 4
+#define TEST_CASE 5
 
 // Change as necessary
 const std::string ABS_FILE_PATH = "C:/Richard's Programming/CMR Stuff/Raceline-Testing-2/";
@@ -77,17 +80,11 @@ void load_csv(const std::string& filename) {
     }
 }
 
-std::vector<Eigen::Vector2d> generate_midpoints(const std::vector<Eigen::Vector2d>& left_cones, const std::vector<Eigen::Vector2d>& right_cones) {
-    std::vector<Eigen::Vector2d> midpoints;
-    std::set<std::pair<size_t, size_t>> bad_edges;    
-
-    std::vector<Eigen::Vector2d> all_cones = left_cones;
-    all_cones.insert(all_cones.end(), right_cones.begin(), right_cones.end());
-
-    // Apparently, C++ prematurely optimizes bools into bits instead of chars. Not a problem for me
-    std::vector<bool> is_left(left_cones.size(), true);
-    is_left.insert(is_left.end(), right_cones.size(), false);
-
+std::vector<size_t> get_delaunator_triangles(
+    const std::vector<Eigen::Vector2d>& left_cones, 
+    const std::vector<Eigen::Vector2d>& right_cones,
+    const std::vector<Eigen::Vector2d>& all_cones
+) {
     // For whatever reason, Delaunator inputs direct list of coords: [x0, y0, x1, y1...] 
     // Why not list of points? Like: [(x0, y0), (x1, y1)...]
     std::vector<double> coords;
@@ -98,14 +95,31 @@ std::vector<Eigen::Vector2d> generate_midpoints(const std::vector<Eigen::Vector2
         coords.push_back(p.y());
     }
 
-    // All good here. Delaunator is cooked?
-
     delaunator::Delaunator d(coords);
 
-    for(size_t i = 0; i < d.triangles.size(); i += 3) {
-        size_t simplex[3] = { d.triangles[i], d.triangles[i + 1], d.triangles[i + 2] };
+    return d.triangles;
+}
+
+// ima modify filtered_triangles because why the hell not
+std::vector<Eigen::Vector2d> generate_midpoints(
+    const std::vector<Eigen::Vector2d>& left_cones, 
+    const std::vector<Eigen::Vector2d>& right_cones, 
+    const std::vector<Eigen::Vector2d>& all_cones,
+    const std::vector<size_t>& triangles,
+    std::vector<size_t>& filtered_triangles
+) {
+    std::vector<Eigen::Vector2d> midpoints;
+    std::set<std::pair<size_t, size_t>> bad_edges;    
+
+    // Apparently, C++ prematurely optimizes bools into bits instead of chars. Not a problem for me
+    std::vector<bool> is_left(left_cones.size(), true);
+    is_left.insert(is_left.end(), right_cones.size(), false);
+
+    for(size_t i = 0; i < triangles.size(); i += 3) {
+        size_t simplex[3] = { triangles[i], triangles[i + 1], triangles[i + 2] };
 
         for (int j = 0; j < 3; j++) {
+            // Indices work as expected; coords fed into Delaunator are the weird ones
             size_t index_a = simplex[j];
             size_t index_b = simplex[(j + 1) % 3];
 
@@ -119,61 +133,38 @@ std::vector<Eigen::Vector2d> generate_midpoints(const std::vector<Eigen::Vector2
                 bad_edges.insert(edge);
                 continue;
             }
-
+ 
             Eigen::Vector2d point_a = all_cones[index_a];
             Eigen::Vector2d point_b = all_cones[index_b];
 
             double width = (point_a - point_b).norm();
 
-            // If an edge is too small or too larger, the entire Delaunay triangle is guaranteed to be outside the track. Skip entirely 
+            // If an edge is too small or too large, the entire Delaunay triangle is guaranteed to be outside the track. Skip entirely 
             if(MIN_SPACING > width || width > MAX_SPACING) {
                 bad_edges.insert(edge);
                 break;
             }
 
             midpoints.push_back((point_a + point_b) / 2);
+
+            filtered_triangles.push_back(simplex[0]);
+            filtered_triangles.push_back(simplex[1]);
+            filtered_triangles.push_back(simplex[2]);
+
             break;
         }
     }
 
-    // Is throwing errors here good or bad?
+    // Is throwing errors here good or bad for the car?
 
     return midpoints;
 }
 
 // Change start position to (0, 0) for actual code
-std::vector<Eigen::Vector2d> order_midpoints(const std::vector<Eigen::Vector2d>& points, const Eigen::Vector2d& start) {
-    // """
-    // start_pos: starting index
-    
-    // returns:
-    //     path: ordered points
-    // """
-    
-    // ordered = []
-    
-    // n = len(edges)
-    // visited_indices = [] # Rather than constantly appending to list, a fixed array of correct size could be used. Interesting
-
-    // edge_points = indices_to_points(edges) # Numpy magic. Works with not just list of indices, but list of edge indices
-    // midpoints = (edge_points[:,0] + edge_points[:,1]) / 2
-
-    // current = start_pos
-
-    // while len(visited_indices) < n:
-    //     dist = np.linalg.norm(midpoints - current, axis=1)
-    //     dist[visited_indices] = np.inf
-        
-    //     nearest_index = np.argmin(dist)
-    //     nearest = midpoints[nearest_index]
-
-    //     visited_indices.append(nearest_index)
-    //     ordered.append(nearest)
-        
-    //     current = nearest
-
-    // return np.array(ordered)
-
+std::vector<Eigen::Vector2d> order_midpoints(
+    const std::vector<Eigen::Vector2d>& points, 
+    const Eigen::Vector2d& start
+) {
     size_t len = points.size();
 
     std::vector<Eigen::Vector2d> ordered_pts;
@@ -201,7 +192,7 @@ std::vector<Eigen::Vector2d> order_midpoints(const std::vector<Eigen::Vector2d>&
             }
         }
 
-        // Throw error?
+        // Throw error, or fail gracefully?
         if (nearest_index == std::numeric_limits<size_t>::max()) {
             break;
         }
@@ -220,7 +211,6 @@ int main() {
     // std::cout << std::filesystem::current_path() << std::endl;
 
     // Irritatingly, I have to use the absolute file path
-    // std::ifstream f("C:\\Richard's Programming\\CMR Stuff\\driverless\\driverless_ws\\src\\delaunay\\delaunay.cpp");
     
     // if (!f.is_open()) {
     //     throw std::runtime_error("Oh dear");
@@ -231,14 +221,83 @@ int main() {
     std::string file = entry["file"];
     Eigen::Vector2d start(entry["position"][0], entry["position"][1]);
     double heading_rads = entry["heading"].get<double>() * M_PI / 180.0;
-    (void) heading_rads; // ?
 
     load_csv(file);
+
+    std::vector<Eigen::Vector2d> all_cones(left);
+    all_cones.insert(all_cones.end(), right.begin(), right.end());
+
+    // GPT says compiler may optimize vector setting. Interesting
+    std::vector<size_t> triangles = get_delaunator_triangles(left, right, all_cones);
+
+    std::vector<size_t> filtered_triangles;
     // Not sure how to order in place
-    // GPT says compiler may optimize this. Interesting
-    std::vector<Eigen::Vector2d> vec = order_midpoints(generate_midpoints(left, right), start);
-    
-    // TODO: display
+    std::vector<Eigen::Vector2d> vec = order_midpoints(generate_midpoints(left, right, all_cones, triangles, filtered_triangles), start);
+
+    std::vector<double> left_x;
+    std::vector<double> left_y;
+
+    for(const auto& point: left){
+        left_x.push_back(point.x());
+        left_y.push_back(point.y());
+    }
+
+    std::vector<double> right_x;
+    std::vector<double> right_y;
+
+    for(const auto& point: right){
+        right_x.push_back(point.x());
+        right_y.push_back(point.y());
+    }
+
+    std::vector<double> mid_x;
+    std::vector<double> mid_y;
+
+    for(const auto& point: vec){
+        mid_x.push_back(point.x());
+        mid_y.push_back(point.y());
+    }
+
+    matplotlibcpp::plot(left_x, left_y, "bo-");
+    matplotlibcpp::plot(right_x, right_y, {{"color", "gold"}, {"linestyle", "-"}, {"marker", "o"}});
+    matplotlibcpp::plot(mid_x, mid_y, {{"color", "forestgreen"}, {"linestyle", "-"}, {"marker", "x"}});
+
+    // Not very efficient, but oh well
+    std::vector<double> x_tri(4);
+    std::vector<double> y_tri(4);
+
+    for (size_t i = 0; i < filtered_triangles.size(); i += 3) {
+        size_t vertex_1 = filtered_triangles[i];
+        size_t vertex_2 = filtered_triangles[i + 1];
+        size_t vertex_3 = filtered_triangles[i + 2];
+
+        x_tri[0] = all_cones[vertex_1].x();
+        y_tri[0] = all_cones[vertex_1].y();
+
+        x_tri[1] = all_cones[vertex_2].x();
+        y_tri[1] = all_cones[vertex_2].y();
+
+        x_tri[2] = all_cones[vertex_3].x();
+        y_tri[2] = all_cones[vertex_3].y();
+
+        x_tri[3] = x_tri[0];
+        y_tri[3] = y_tri[0];
+
+        matplotlibcpp::plot(x_tri, y_tri, "rx--");
+    }
+
+    std::vector<double> wrapper_x = {start.x()};
+    std::vector<double> wrapper_y = {start.y()};
+
+    std::vector<double> wrapper_x_dir = {std::cos(heading_rads)};
+    std::vector<double> wrapper_y_dir = {std::sin(heading_rads)};
+
+    matplotlibcpp::quiver(wrapper_x, wrapper_y, wrapper_x_dir, wrapper_y_dir);
+
+    matplotlibcpp::axis("equal");
+
+    matplotlibcpp::legend();
+    matplotlibcpp::show();
 
     return 0;
 }
